@@ -1,0 +1,10 @@
+{
+  "domain": "Philips_SICP",
+  "name": "Philips SICP",
+  "codeowners": ["bfulham"],
+  "dependencies": [],
+  "documentation": "https://github.com/bfulham/HAPhilipsSICP",
+  "iot_class": "local_polling",
+  "requirements": ["serialdevicelib>=0.0.9"],
+  "version": "0.0.2"
+}

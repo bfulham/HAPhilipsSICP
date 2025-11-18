@@ -3,7 +3,7 @@
   "name": "Philips SICP",
   "codeowners": ["bfulham"],
   "dependencies": [],
-  "config_flow": true,
+  "config_flow": false,
   "documentation": "https://github.com/bfulham/HAPhilipsSICP",
   "integration_type": "device",
   "iot_class": "local_polling",

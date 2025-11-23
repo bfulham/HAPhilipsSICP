@@ -1506,5 +1506,108 @@
         },
         "response": {
         }
+    },
+    "45": {
+        "name": "Volume",
+        "type": "Get",
+        "notes": "",
+        "command": {
+        },
+        "response": {
+            "1": {
+                "Description": "Speaker Volume", 
+                "type": "number",
+                "Group": 0,
+                "Position": 0
+            },
+            "2": {
+                "Description": "Line Out Volume", 
+                "type": "number",
+                "Group": 1,
+                "Position": 0
+            }
+        }
+    },
+    "44": {
+        "name": "Volume",
+        "type": "Set",
+        "notes": "",
+        "command": {
+            "1": {
+                "Description": "Speaker Volume",
+                "type": "number",
+                "Group": 0,
+                "Position": 0
+            },
+            "2": {
+                "Description": "Line Out Volume",
+                "type": "number",
+                "Group": 1,
+                "Position": 0
+            }
+        },
+        "response": {
+        }
+    },
+    "41": {
+        "name": "Volume step",
+        "type": "Set",
+        "notes": "",
+        "command": {
+            "1": {
+                "Description": "Speaker Volume",
+                "type": "list",
+                "Options": {
+                    "00": "Volume Down",
+                    "01": "Volume Up",
+                    "02": "No change"
+                }
+            },
+            "2": {
+                "Description": "Audio Out Volume",
+                "type": "list",
+                "Options": {
+                    "00": "Volume Down",
+                    "01": "Volume Up",
+                    "02": "No change"
+                }
+            }
+        },
+        "response": {
+        }
+    },
+    "46": {
+        "name": "Mute",
+        "type": "Get",
+        "notes": "",
+        "command": {
+        },
+        "response": {
+            "1": {
+                "Description": "Mute",
+                "type": "bool",
+                "Options": {
+                    "00": false,
+                    "01": true
+                }
+            }
+        }
+    },
+    "47": {
+        "name": "Mute",
+        "type": "Set",
+        "notes": "",
+        "command": {
+            "1": {
+                "Description": "Mute",
+                "type": "bool",
+                "Options": {
+                    "00": false,
+                    "01": true
+                }
+            }
+        },
+        "response": {
+        }
     }
 }

@@ -81,6 +81,8 @@ class Philips_SICP(MediaPlayerEntity):
         self._hwversion = self._media_player.get('SICP Version & Platform Information', 1), " ", self._media_player.get('SICP Version & Platform Information', 2)
         self._swversion = self._media_player.get('SICP Version & Platform Information', 0)
         self.unique_id = self._serialnumber
+        self._is_volume_muted = False #self._media_player.get('Mute')
+        self._volume = self._media_player.get('Volume')[0] / 100
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -110,8 +112,13 @@ class Philips_SICP(MediaPlayerEntity):
         return self.state
     
     @property
+    def is_volume_muted(self) -> bool | None:
+        """Return true if muted."""
+        return self._is_volume_muted
+    
+    @property
     def supported_features(self):
-        return MediaPlayerEntityFeature.PAUSE|MediaPlayerEntityFeature.VOLUME_SET|MediaPlayerEntityFeature.VOLUME_MUTE|MediaPlayerEntityFeature.TURN_ON|MediaPlayerEntityFeature.TURN_OFF|MediaPlayerEntityFeature.SELECT_SOURCE
+        return MediaPlayerEntityFeature.VOLUME_SET|MediaPlayerEntityFeature.VOLUME_MUTE|MediaPlayerEntityFeature.TURN_ON|MediaPlayerEntityFeature.TURN_OFF|MediaPlayerEntityFeature.SELECT_SOURCE
 
     @property
     def source(self) -> str | None:
@@ -128,9 +135,22 @@ class Philips_SICP(MediaPlayerEntity):
         """Return the class of this entity."""
         return MediaPlayerDeviceClass.TV
     
+    @property
+    def volume_level(self) -> float | None:
+        """Return the volume of this entity."""
+        return self._volume
+    
     async def shutdown(self):
         """Shutdown the service"""
         self._media_player.disconnect()
+
+    async def async_mute_volume(self, mute: bool) -> None:
+        """Mute the volume."""
+        self._media_player.set("Mute", mute)
+
+    async def async_set_volume_level(self, volume: float) -> None:
+        """set the volume."""
+        self._media_player.set("Volume", int(volume * 100), 0)
 
     async def async_turn_on(self) -> None:
         """Instruct the display to turn on."""
@@ -154,3 +174,5 @@ class Philips_SICP(MediaPlayerEntity):
             self.state = MediaPlayerState.OFF
         self._source = self._media_player.get('Input Source')['Input Source Type/Number']
         self._source_list = list(self._media_player.bible['AC']['command']['1']['Options'].values())
+        self._is_volume_muted = False #self._media_player.get('Mute')
+        self._volume = self._media_player.get('Volume')[0] / 100

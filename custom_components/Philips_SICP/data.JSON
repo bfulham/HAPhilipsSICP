@@ -526,7 +526,7 @@
         "notes": "",
         "command": {
             "1": {
-                "Description": "Input Source Type/Number", 
+                "Description": "Input Source", 
                 "type": "list",
                 "Options": {
                     "01": "VIDEO",
@@ -610,7 +610,7 @@
         },
         "response": {
             "1": {
-                "Description": "Input Source Type/Number", 
+                "Description": "Boot on Source Input Source Type/Number", 
                 "type": "list",
                 "Options": {
                     "00": "Last input",
@@ -676,7 +676,7 @@
         "notes": "",
         "command": {
             "1": {
-                "Description": "Input Source Type/Number", 
+                "Description": "Boot on Source Input Source Type/Number", 
                 "type": "list",
                 "Options": {
                     "00": "Last input",

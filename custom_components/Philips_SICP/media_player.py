@@ -27,24 +27,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PORT): cv.string
 })
 
-async def async_setup_platform(
-    hass: core.HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None
-) -> None:
-    """Set up the Philips SICP platform."""
-    # Add devices
-    _LOGGER.info(pformat(config))
-    
-    media_player = {
-        "name": config[CONF_NAME],
-        "host": config[CONF_HOST],
-        "port": config[CONF_PORT]
-    }
-    
-    async_add_entities([Philips_SICP(media_player)])
-
 async def async_setup_entry(
     hass: core.HomeAssistant,
     config_entry: config_entries.ConfigEntry,
@@ -55,34 +37,26 @@ async def async_setup_entry(
     config = hass.data[DOMAIN][config_entry.entry_id]
     _LOGGER.info(pformat(config))
     
-    media_player = {
-        "name": config[CONF_NAME],
-        "host": config[CONF_HOST],
-        "port": config[CONF_PORT]
-    }
-    
-    async_add_entities([Philips_SICP(media_player)])
+    async_add_entities([Philips_SICP(config_entry)])
 
 class Philips_SICP(MediaPlayerEntity):
     """Representation of a Philips SICP display."""
 
-    def __init__(self, media_player) -> None:
+    def __init__(self, config_entry) -> None:
         """Initialize a Philips SICP display."""
-        _LOGGER.info(pformat(media_player))
-        self._media_player = serialdevicelib.serial_device(media_player["host"], int(media_player["port"]), 1, 0, "/config/custom_components/Philips_SICP/data.JSON")
-        self._name = media_player["name"]
-        self.state = None
+        self._media_player = config_entry.device
+        self._name = config_entry.data["name"]
+        self._state = None
         self._source = None
         self._source_list = []
-        self._media_player.connect()
         self._manufacturer = "Philips"
-        self._model = self._media_player.get('Model & Firmware Information', 0)
-        self._serialnumber = self._media_player.get('Serial Number')
-        self._hwversion = self._media_player.get('SICP Version & Platform Information', 1), " ", self._media_player.get('SICP Version & Platform Information', 2)
-        self._swversion = self._media_player.get('SICP Version & Platform Information', 0)
-        self.unique_id = self._serialnumber
-        self._is_volume_muted = False #self._media_player.get('Mute')
-        self._volume = self._media_player.get('Volume')[0] / 100
+        self._model = self._media_player.data["Model Number"]
+        self._serialnumber = self._media_player.data["Serial Number"]
+        self._hwversion = self._media_player.data["Platform label"], " ", self._media_player.data["Platform version"]
+        self._swversion = self._media_player.data["Implementation version"]
+        self._unique_id = self._serialnumber
+        self._is_volume_muted = False
+        self._volume = self._media_player.data["Volume"]["Speaker Volume"] / 100
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -90,7 +64,7 @@ class Philips_SICP(MediaPlayerEntity):
         return DeviceInfo(
             identifiers={
                 # Serial numbers are unique identifiers within a specific domain
-                (DOMAIN, self.unique_id)
+                (DOMAIN, self._unique_id)
             },
             name=self._name,
             suggested_area="Lounge Room",
@@ -104,6 +78,10 @@ class Philips_SICP(MediaPlayerEntity):
     @property
     def name(self) -> str:
         """Return the display name of this device."""
+        return self._name
+    
+    @property
+    def unique_id(self) -> str:
         return self._name
 
     @property
@@ -143,10 +121,6 @@ class Philips_SICP(MediaPlayerEntity):
     @property
     def volume_step(self) -> float | None:
         return 0.01
-    
-    async def shutdown(self):
-        """Shutdown the service"""
-        self._media_player.disconnect()
 
     async def async_mute_volume(self, mute: bool) -> None:
         """Mute the volume."""
@@ -170,13 +144,18 @@ class Philips_SICP(MediaPlayerEntity):
             if value == source:
                 self._media_player.set("Input Source", int(key, 16), 0, 1, 0)
 
+    async def async_will_remove_from_hass(self) -> bool:
+        self._media_player.disconnect()
+        return True
+
     async def async_update(self) -> None:
         """Fetch new state data for this display."""
-        if self._media_player.get('Power State'):
+        self._media_player.updateAll()
+        if self._media_player.data['Power State']:
             self.state = MediaPlayerState.ON
         else:
             self.state = MediaPlayerState.OFF
-        self._source = self._media_player.get('Input Source')['Input Source Type/Number']
+        self._source = self._media_player.data['Input Source']
         self._source_list = list(self._media_player.bible['AC']['command']['1']['Options'].values())
-        self._is_volume_muted = False #self._media_player.get('Mute')
-        self._volume = self._media_player.get('Volume')[0] / 100
+        self._is_volume_muted = False
+        self._volume = self._media_player.data["Volume"]["Speaker Volume"] / 100

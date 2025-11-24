@@ -118,7 +118,7 @@ class Philips_SICP(MediaPlayerEntity):
     
     @property
     def supported_features(self):
-        return MediaPlayerEntityFeature.VOLUME_SET|MediaPlayerEntityFeature.VOLUME_MUTE|MediaPlayerEntityFeature.TURN_ON|MediaPlayerEntityFeature.TURN_OFF|MediaPlayerEntityFeature.SELECT_SOURCE
+        return MediaPlayerEntityFeature.VOLUME_SET|MediaPlayerEntityFeature.VOLUME_MUTE|MediaPlayerEntityFeature.TURN_ON|MediaPlayerEntityFeature.TURN_OFF|MediaPlayerEntityFeature.SELECT_SOURCE|MediaPlayerEntityFeature.VOLUME_STEP
 
     @property
     def source(self) -> str | None:
@@ -139,6 +139,10 @@ class Philips_SICP(MediaPlayerEntity):
     def volume_level(self) -> float | None:
         """Return the volume of this entity."""
         return self._volume
+    
+    @property
+    def volume_step(self) -> float | None:
+        return 0.01
     
     async def shutdown(self):
         """Shutdown the service"""
@@ -164,7 +168,7 @@ class Philips_SICP(MediaPlayerEntity):
         """Select input source."""
         for key, value in self._media_player.bible['AC']['command']['1']['Options'].items():
             if value == source:
-                self._media_player.set("Input Source", key, 0, 1, 0)
+                self._media_player.set("Input Source", int(key, 16), 0, 1, 0)
 
     async def async_update(self) -> None:
         """Fetch new state data for this display."""

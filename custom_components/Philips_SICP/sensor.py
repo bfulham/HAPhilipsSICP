@@ -5,6 +5,7 @@ import logging
 
 import serialdevicelib
 import voluptuous as vol
+from datetime import datetime
 from .const import DOMAIN
 
 from pprint import pformat
@@ -40,7 +41,7 @@ async def async_setup_entry(
     sensors = config_entry.device.data
     for sensor in sensors:
         if sensors[sensor] not in ["Not supported", "Unknown error"]:
-            if sensor not in ["Model Number", "Serial Number", "Platform label", "Platform version", "Implementation version", "Volume", "Input Source", "Power state"]:
+            if sensor not in ["Model Number", "Serial Number", "Platform label", "Platform version", "Implementation version", "Volume", "Input Source", "Power State"]:
                 if sensor in ["Temperature Sensors", "Picture-in-Picture", "Operating Hours"]:
                     for i in sensors[sensor]:
                         l = ""
@@ -73,6 +74,27 @@ class Philips_SICP(SensorEntity):
         self._hwversion = self._sensor.data["Platform label"], " ", self._sensor.data["Platform version"]
         self._swversion = self._sensor.data["Implementation version"]
         self._unique_id = self._serialnumber
+        match self._sensor_name:
+            case "Temperature Sensor 1":
+                self._device_class = SensorDeviceClass.TEMPERATURE
+                self._state_class = SensorStateClass.MEASUREMENT
+                self._unit = "°C"
+            case "Temperature Sensor 2":
+                self._device_class = SensorDeviceClass.TEMPERATURE
+                self._state_class = SensorStateClass.MEASUREMENT
+                self._unit = "°C"
+            case "Operating Hours":
+                self._device_class = SensorDeviceClass.DURATION
+                self._state_class = SensorStateClass.TOTAL
+                self._unit = "h"
+            case "Build date":
+                self._device_class = SensorDeviceClass.DATE
+                self._state_class = None
+                self._unit = None
+            case _:
+                self._device_class = None
+                self._state_class = None
+                self._unit = None
 
 
     @property
@@ -98,8 +120,23 @@ class Philips_SICP(SensorEntity):
         return self._name
     
     @property
-    def state(self) -> int:
-        return self._state
+    def state(self):
+        if self._sensor_name == "Build date":
+            return datetime.strptime(self._state, "%b %d %Y")
+        else:
+            return self._state
+    
+    @property
+    def state_class(self) -> SensorStateClass:
+        return self._state_class
+    
+    @property
+    def device_class(self) -> SensorDeviceClass:
+        return self._device_class
+    
+    @property
+    def native_unit_of_measurement(self) -> str:
+        return self._unit
     
     @property
     def unique_id(self) -> str:

@@ -3,10 +3,9 @@ from __future__ import annotations
 
 import logging
 
-import serialdevicelib
 import voluptuous as vol
 from datetime import datetime
-from .const import DOMAIN
+from .const import DOMAIN, UNSUPPORTED_VALUES, IGNORE_SENSORS, SENSOR_SUBVALUES, MANUFACTURER
 
 from pprint import pformat
 
@@ -15,11 +14,9 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import (PLATFORM_SCHEMA, SensorEntity, SensorDeviceClass, SensorStateClass)
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_NAME
 from homeassistant import config_entries, core
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.device_registry import DeviceInfo
 
-_LOGGER = logging.getLogger("Philips_SICP")
+_LOGGER = logging.getLogger(DOMAIN)
 
 # Validation of the user's configuration
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -40,15 +37,10 @@ async def async_setup_entry(
     
     sensors = config_entry.device.data
     for sensor in sensors:
-        if sensors[sensor] not in ["Not supported", "Unknown error"]:
-            if sensor not in ["Model Number", "Serial Number", "Platform label", "Platform version", "Implementation version", "Volume", "Input Source", "Power State"]:
-                if sensor in ["Temperature Sensors", "Picture-in-Picture", "Operating Hours"]:
+        if sensors[sensor] not in UNSUPPORTED_VALUES:
+            if sensor not in IGNORE_SENSORS:
+                if sensor in SENSOR_SUBVALUES:
                     for i in sensors[sensor]:
-                        l = ""
-                        for command in config_entry.device.bible:
-                            if config_entry.device.bible[command]["name"] == sensor:
-                                if config_entry.device.bible[command]["type"] == "Get":
-                                    l = command
                         async_add_entities([Philips_SICP(i, config_entry, sensor)])
                 else:
                     async_add_entities([Philips_SICP(sensor, config_entry)])
@@ -68,11 +60,11 @@ class Philips_SICP(SensorEntity):
             self._state = self._sensor.data[self._sensor_name]
         else:
             self._state = self._sensor.data[self._location][self._sensor_name]
-        self._manufacturer = "Philips"
+        self._manufacturer = MANUFACTURER
         self._model = self._sensor.data["Model Number"]
         self._serialnumber = self._sensor.data["Serial Number"]
         self._hwversion = self._sensor.data["Platform label"], " ", self._sensor.data["Platform version"]
-        self._swversion = self._sensor.data["Implementation version"]
+        self._swversion = self._sensor.data["FW version"]
         self._unique_id = self._serialnumber
         match self._sensor_name:
             case "Temperature Sensor 1":
@@ -135,7 +127,7 @@ class Philips_SICP(SensorEntity):
         return self._device_class
     
     @property
-    def native_unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self) -> str | None:
         return self._unit
     
     @property

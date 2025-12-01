@@ -18,15 +18,23 @@ async def async_setup_entry(
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = entry.data
     entry.device = serialdevicelib.serial_device(entry.data["host"], int(entry.data["port"]), 1, 0, "/config/custom_components/Philips_SICP/data.JSON")
-    entry.device.connect()
-    entry.device.updateAll()
-
+    try:
+        entry.device.connect()
+        entry.device.updateAll()
+        _LOGGER.info("Connected to device.")
+    except:
+        _LOGGER.error("Failed to connect to device.")
+        raise ConnectionRefusedError
+    
     # Forward the setup to the sensor platform.
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, ["media_player"])
     )
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    )
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setups(entry, ["select"])
     )
     return True
 

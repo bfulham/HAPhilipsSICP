@@ -8,6 +8,6 @@
   "integration_type": "device",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/bfulham/HAPhilipsSICP/issues",
-  "requirements": ["serialdevicelib==0.2.5"],
-  "version": "1.1.1"
+  "requirements": ["serialdevicelib==0.3.3"],
+  "version": "1.1.2"
 }

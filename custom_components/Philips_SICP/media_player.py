@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import logging
+from multiprocessing.dummy import connection
 
-import serialdevicelib
 import voluptuous as vol
-from .const import DOMAIN
+from .const import DOMAIN, MANUFACTURER
 
 from pprint import pformat
 
@@ -14,11 +14,9 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.components.media_player import (PLATFORM_SCHEMA, MediaPlayerEntity, MediaPlayerState, MediaPlayerEntityFeature, MediaPlayerDeviceClass)
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_NAME
 from homeassistant import config_entries, core
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.device_registry import DeviceInfo
 
-_LOGGER = logging.getLogger("Philips_SICP")
+_LOGGER = logging.getLogger(DOMAIN)
 
 # Validation of the user's configuration
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -49,11 +47,11 @@ class Philips_SICP(MediaPlayerEntity):
         self._state = None
         self._source = None
         self._source_list = []
-        self._manufacturer = "Philips"
+        self._manufacturer = MANUFACTURER
         self._model = self._media_player.data["Model Number"]
         self._serialnumber = self._media_player.data["Serial Number"]
         self._hwversion = self._media_player.data["Platform label"], " ", self._media_player.data["Platform version"]
-        self._swversion = self._media_player.data["Implementation version"]
+        self._swversion = self._media_player.data["FW version"]
         self._unique_id = self._serialnumber
         self._is_volume_muted = False
         self._volume = self._media_player.data["Volume"]["Speaker Volume"] / 100
@@ -150,12 +148,24 @@ class Philips_SICP(MediaPlayerEntity):
 
     async def async_update(self) -> None:
         """Fetch new state data for this display."""
-        self._media_player.updateAll()
+        try:
+            self._media_player.updateAll()
+        except (BrokenPipeError, ConnectionResetError, TimeoutError, OSError):
+            _LOGGER.error("Connection to device lost, attempting to reconnect...")
+            self._media_player.disconnect()
+            try:
+                self._media_player.connect()
+                self._media_player.updateAll()
+                _LOGGER.info("Connection restored.")
+            except:
+                _LOGGER.error("Connection restore failed.")
+                raise ConnectionError
+            return
         if self._media_player.data['Power State']:
             self.state = MediaPlayerState.ON
         else:
             self.state = MediaPlayerState.OFF
-        self._source = self._media_player.data['Input Source']
+        self._source = self._media_player.data['Input Source']['Input Source Type/Number']
         self._source_list = list(self._media_player.bible['AC']['command']['1']['Options'].values())
         self._is_volume_muted = False
         self._volume = self._media_player.data["Volume"]["Speaker Volume"] / 100

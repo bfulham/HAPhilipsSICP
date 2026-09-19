@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to the display chain",
+        "description": "Enter the IP address of the LAN-connected display. If other displays are RS232 daisy-chained from it, you'll add each one's Monitor ID on the next screen.",
+        "data": {
+          "host": "Host",
+          "port": "Port"
+        }
+      },
+      "add_display": {
+        "title": "Add a display",
+        "description": "Currently added: {count}. Each display on this connection needs its own Monitor ID (set on the display itself, or via SICP command 7.15).",
+        "data": {
+          "monitor_id": "Monitor ID",
+          "group_id": "Group ID (0 = address by Monitor ID)",
+          "name": "Name",
+          "add_another": "Add another display on this connection"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to the host.",
+      "not_available": "That Monitor ID replied but doesn't support a basic SICP query - check the ID.",
+      "monitor_not_responding": "No display responded with that Monitor ID/Group ID."
+    },
+    "abort": {
+      "already_configured": "This host is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Philips SICP options",
+        "description": "Optionally add another daisy-chained display, or set the PIN used by the Open Admin Menu button.",
+        "data": {
+          "monitor_id": "New display's Monitor ID (leave blank to skip)",
+          "group_id": "Group ID",
+          "name": "Name",
+          "admin_pin": "Admin menu PIN"
+        }
+      }
+    },
+    "error": {
+      "monitor_not_responding": "No display responded with that Monitor ID/Group ID."
+    }
+  },
+  "services": {
+    "send_remote_key": {
+      "name": "Send remote key",
+      "description": "Simulates a remote-control key press."
+    },
+    "set_ip_parameter": {
+      "name": "Set IP parameter",
+      "description": "Changes a network parameter. Can strand the display off the network if misused."
+    },
+    "set_monitor_id": {
+      "name": "Set monitor ID",
+      "description": "Changes the addressable Monitor ID of a display."
+    },
+    "set_failover_priority": {
+      "name": "Set failover source priority",
+      "description": "Sets the ordered list of failover input sources."
+    },
+    "reset_scheduler": {
+      "name": "Reset scheduler page",
+      "description": "Resets one or all power/input scheduler pages to defaults."
+    }
+  }
+}
